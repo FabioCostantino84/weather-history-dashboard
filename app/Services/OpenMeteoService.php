@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+
 
 class OpenMeteoService
 {
@@ -54,5 +56,52 @@ class OpenMeteoService
             'latitude'  => isset($firstMatchCity['latitude'])  ? (float)$firstMatchCity['latitude']  : null,
             'longitude' => isset($firstMatchCity['longitude']) ? (float)$firstMatchCity['longitude'] : null,
         ];    
+    }
+
+    /**
+    * Recupera le temperature orarie storiche per un intervallo di date.
+    * Ritorna (per ora) la query costruita; nel passo successivo faremo la chiamata HTTP e la normalizzazione.
+    *
+    * @param  float  $lat   Latitudine (-90..90)
+    * @param  float  $lon   Longitudine (-180..180)
+    * @param  string $from  Data inizio (YYYY-MM-DD)
+    * @param  string $to    Data fine   (YYYY-MM-DD)
+    * @return array         Parametri di query pronti per l'API
+    */
+    public function fetchHourlyTemps(float $lat, float $lon, string $from, string $to): array
+    {
+        // 1) evitiamo valori fuori range.
+        $lat = max(-90, min(90,$lat));
+        $lon = max(-180, min(180,$lon));
+
+        // 2) Con Carbon normalizziamo le date.
+        $start = Carbon::parse($from)->startOfDay();
+        $end = Carbon::parse($to)->endOfDay();
+
+        // 3) se le date sono invertite nel form, le invertiamo.
+        if ($start->gt($end)) {
+            [$start,$end] = [$end, $start];
+        }
+
+        // 4) Endpoint API storico di Open-Meteo.
+        $endpoint = 'https://archive-api.open-meteo.com/v1/archive';
+
+        // 5) Query 
+        $query = [
+            'latitude'   => $lat,
+            'longitude'  => $lon,
+            'start_date' => $start->toDateString(),
+            'end_date'   => $end->toDateString(), // Formato YYYY-MM-DD.
+            'hourly'     => 'temperature_2m', // Temperature orarie.
+            'timezone'   => 'Europe/Rome', // Europe/Rome per orari italiani.
+        ];
+
+        // Faccio un return per ispezionare la query con Tinker.
+        return [
+            'endpoint' => $endpoint,
+            'query'    => $query,
+        ];
+
+
     }
 }
