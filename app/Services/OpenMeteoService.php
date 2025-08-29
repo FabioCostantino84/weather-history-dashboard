@@ -49,7 +49,7 @@ class OpenMeteoService
             return null; // null se non trova risultati
         }
 
-        // 7) Normalizza i dati in un array chiaro e coerente
+        // 7) Normalizza i dati in un array
         return [
             'name'      => $firstMatchCity['name'] ?? $name,
             'country'   => $firstMatchCity['country'] ?? null,
@@ -87,7 +87,7 @@ class OpenMeteoService
         $endpoint = 'https://archive-api.open-meteo.com/v1/archive';
 
         // 5) Query 
-        $query = [
+        $queryParams = [
             'latitude'   => $lat,
             'longitude'  => $lon,
             'start_date' => $start->toDateString(),
@@ -96,11 +96,41 @@ class OpenMeteoService
             'timezone'   => 'Europe/Rome', // Europe/Rome per orari italiani.
         ];
 
-        // Faccio un return per ispezionare la query con Tinker.
-        return [
-            'endpoint' => $endpoint,
-            'query'    => $query,
-        ];
+        // 6) Chiamata HTTP
+        $response = Http::timeout(15)
+            ->retry(2, 200) // così se fallisce la chiamata riprova 2 volte
+            ->get($endpoint, $queryParams);
+        
+        $response->throw(); // Se l'API risponde con errore (es. 404, 500), lancia un'eccezione
+
+        // 7) Converte il JSON in un array PHP
+        $data = $response->json();
+        
+        // 8) Estrae i due array paralleli: orari e temperature
+        $times  = $data['hourly']['time']           ?? [];
+        $temps  = $data['hourly']['temperature_2m'] ?? [];
+
+        // 9) Validazione dei dati ricevuti
+        if (count($times) === 0 || count($times) !== count($temps)) {
+            // Se i dati negli array non sono allineati, ritorniamo un array vuoto.
+            return [];
+        }
+
+        // 10) Creiamo lista ordinata con ora e temperature
+        $records = [];
+        for ($i = 0, $n = count($times); $i < $n; $i++) {
+            $iso  = $times[$i];             
+            $temp = $temps[$i];             
+
+            $records[] = [
+                // Mi assicuro che i dati siano coerenti per DB/UI
+                'time'        => Carbon::parse($iso)->format('Y-m-d H:i:s'),
+                'temperature' => is_null($temp) ? null : (float) $temp,
+            ];
+        }
+
+        // 11) Ritorniamo i record normalizzati
+        return $records;
 
 
     }
