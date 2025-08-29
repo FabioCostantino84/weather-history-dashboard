@@ -4,6 +4,8 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
+use App\Models\City;
 
 
 class OpenMeteoService
@@ -28,7 +30,7 @@ class OpenMeteoService
         $endpoint = 'https://geocoding-api.open-meteo.com/v1/search';
         $queryParams = [
             'name'     => $name,
-            'count'    => 1, // Così prendiamo solo il risutato migliore
+            'count'    => 1, // Così prendiamo solo il risultato migliore
             'language' => 'it',
         ];
 
@@ -60,7 +62,7 @@ class OpenMeteoService
 
     /**
     * Recupera le temperature orarie storiche per un intervallo di date.
-    * Ritorna (per ora) la query costruita; nel passo successivo faremo la chiamata HTTP e la normalizzazione.
+    * Ritorna un array normalizzato: [['time' => 'Y-m-d H:i:s', 'temperature' => float|null], ...]
     *
     * @param  float  $lat   Latitudine (-90..90)
     * @param  float  $lon   Longitudine (-180..180)
@@ -68,6 +70,7 @@ class OpenMeteoService
     * @param  string $to    Data fine   (YYYY-MM-DD)
     * @return array         Parametri di query pronti per l'API
     */
+    
     public function fetchHourlyTemps(float $lat, float $lon, string $from, string $to): array
     {
         // 1) evitiamo valori fuori range.
@@ -131,7 +134,64 @@ class OpenMeteoService
 
         // 11) Ritorniamo i record normalizzati
         return $records;
+    }
+    
+    /**
+     * Salva nel database i record orari di temperatura di una città.
+     * Se esiste già una riga con stessa città e stessa ora → fa UPDATE.
+     * Altrimenti → fa INSERT.
+     *
+     * @param  City   $city           Oggetto città a cui appartengono i dati
+     * @param  array  $hourlyRecords  Array normalizzato con ['time' => 'YYYY-MM-DD HH:MM:SS', 'temperature' => float|null]
+     * @return int                    Numero totale di righe inserite o aggiornate
+     */
 
-
+    public function saveHourlyTemps(City $city, array $hourlyRecords): int
+    {
+        // $now ora corrente created_at / updated_at
+        $now = Carbon::now();
+    
+        // Trasformo l’array normalizzato in righe pronte per l’upsert
+        $rowsToUpsert = [];
+    
+        foreach ($hourlyRecords as $record) {
+            // Se manca l'ora del dato, salto la riga (dato incompleto)
+            if (!isset($record['time'])) {
+                continue;
+            }
+    
+            $rowsToUpsert[] = [
+                'city_id'     => $city->id,
+                'recorded_at' => Carbon::parse($record['time'])->format('Y-m-d H:i:s'),
+                'temperature' => array_key_exists('temperature', $record) && $record['temperature'] !== null
+                                    ? (float) $record['temperature']
+                                    : null,
+                'created_at'  => $now,
+                'updated_at'  => $now,
+            ];
+        }
+    
+        // Se non ho nulla da salvare, esco
+        if (empty($rowsToUpsert)) {
+            return 0;
+        }
+    
+        // Per non inviare query troppo grosse, salvo a blocchi (chunk) da 500 righe
+        $totalAffectedRows = 0;
+    
+        foreach (array_chunk($rowsToUpsert, 500) as $chunk) {
+            // upsert = INSERT se non esiste; UPDATE se (city_id, recorded_at) esiste già
+            $affected = DB::table('weather_records')->upsert(
+                values: $chunk,
+                uniqueBy: ['city_id', 'recorded_at'],  // deve corrispondere alla UNIQUE della migration
+                update: ['temperature', 'updated_at']  // cosa aggiornare se c'è conflitto
+            );
+    
+            // Sommo quante righe sono state inserite/aggiornate da questo chunk
+            $totalAffectedRows += $affected;
+        }
+    
+        // Ritorno il totale delle righe interessate (insert + update)
+        return $totalAffectedRows;
     }
 }
