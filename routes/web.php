@@ -3,15 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CityController;
 
-// Homepage
-Route::view('/', 'welcome');
+// Homepage -> form di ricerca
+Route::view('/', 'city.search');
 
+// Salva/ricerca città
 Route::post('/cities', [CityController::class, 'store'])->name('cities.store');
-Route::get('/cities/{city}/stats', [CityController::class, 'stats'])->name('cities.stats');
 
-Route::get('/test-stats', function () {
-    return view('city.stats', ['city' => (object) [
-        'name' => 'Roma',
-        'country' => 'IT'
-    ]]);
-});
+// Statistiche per una città
+Route::get('/cities/{city}/stats', [CityController::class, 'stats'])->name('cities.stats');
