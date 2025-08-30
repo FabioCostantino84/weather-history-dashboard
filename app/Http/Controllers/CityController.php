@@ -12,6 +12,10 @@ class CityController extends Controller
      * Riceve dall'utente il nome della città attraverso il form, e lo cerca tramite l'API OpenMeteo.
      * Salva/aggiorna il record nel DB.
      */
+
+
+    // CONTROLLER PRIMA DEL REFACTOR CON LA FORM REQUEST
+    
     public function store(Request $request, OpenMeteoService $geo)
     {
         // 1) Validazione input
