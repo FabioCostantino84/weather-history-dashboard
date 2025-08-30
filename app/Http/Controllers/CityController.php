@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\City;
 use App\Services\OpenMeteoService;
-use Illuminate\Http\Request;
+use App\Http\Requests\CitySearchRequest;
 
 class CityController extends Controller
 {
@@ -12,20 +12,16 @@ class CityController extends Controller
      * Riceve dall'utente il nome della città attraverso il form, e lo cerca tramite l'API OpenMeteo.
      * Salva/aggiorna il record nel DB.
      */
-
-
-    // CONTROLLER PRIMA DEL REFACTOR CON LA FORM REQUEST
     
-    public function store(Request $request, OpenMeteoService $geo)
+    public function store(CitySearchRequest $request, OpenMeteoService $geo)
     {
         // 1) Validazione input
-        $data = $request->validate([
-            'name' => ['required', 'string', 'min:2'],
-        ]);
+        // Con la FormRequest l'input è già validato/pulito: uso validated()
+        $data = $request->validated();
         // Siamo sicuri che sia stato digitato un 'name'.
         // Che sia una stringa e non un numero ad esempio. 
         // Che sia composto da almeno 2 caratteri.
-
+    
         // 2) Chiamiamo OpenMeteoService
         try {
             $match = $geo->searchCity($data['name']);
@@ -34,18 +30,18 @@ class CityController extends Controller
             // Se l'API fallisce, restituiamo un errore all'utente e torniamo alla pagina precedente.
             return back()->with('error', 'Servizio non disponibile, riprova più tardi.');
         }
-
+    
         // 3) Se non troviamo nessuna città, facciamo un messaggio all'utente
         if (!$match || $match['latitude'] === null || $match['longitude'] === null) {
             return back()->with('error', 'Città non trovata.');
         }
-
+    
         // 4) Salvataggio nel DB (se esiste già la aggiorna altrimenti la crea) si evitano duplicati nel DB.
         $city = City::updateOrCreate(
             ['name' => $match['name'], 'country' => $match['country']], 
             ['latitude' => $match['latitude'], 'longitude' => $match['longitude']]
         );
-
+    
         // 5) Facciamo un redirect alla pagina con le statistiche relative alla città
         return redirect()->route('cities.stats', $city);
     }
