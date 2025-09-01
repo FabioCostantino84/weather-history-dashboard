@@ -110,13 +110,31 @@ class CityController extends Controller
                 'city'      => null,
                 'stats'     => [],
                 'dailyRows' => collect(),
-            ])->with('error', 'Servizio meteo non disponibile, riprova più tardi.');
+            ])->with('error', 'Servizio meteo non disponibile, 
+            riprova più tardi oppure prova con date precedenti (es. ieri o la scorsa settimana).');
         }
         
 
         // 7) Creo una query base per rileggere i dati dal DB nell’intervallo scelto.
         $baseQuery = WeatherRecord::where('city_id', $city->id)
             ->whereBetween('recorded_at', [$from, $to]);
+        
+        // 7-bis) Se non ci sono dati (o tutte temperature NULL), nascondo risultati e consiglio date precedenti
+        $hasRows   = (clone $baseQuery)->exists();
+        $avgInRange = (clone $baseQuery)->avg('temperature'); // AVG ignora i NULL; se è NULL non c'è alcun dato utile
+        
+        if (!$hasRows || is_null($avgInRange)) {
+            return view('city.dashboard', [
+                'nameInput' => $nameInput,
+                'fromInput' => $from->toDateString(),
+                'toInput'   => $to->toDateString(),
+                'city'      => null,            // <-- così la view NON mostra stats/tabella
+                'stats'     => [],
+                'dailyRows' => collect(),
+                'error'     => "Dati meteo non disponibili per l’intervallo selezionato. 
+                                Prova con date precedenti (es. ieri o la scorsa settimana).",
+            ]);
+        }    
 
         // 8) Calcolo statistiche semplici:
         // - temperatura media
