@@ -16,11 +16,12 @@
   {{-- FORM: città + from/to (GET sulla stessa pagina) --}}
   <div class="card mb-3">
     <div class="card-body">
-      <form method="GET" action="{{ route('dashboard') }}" class="row g-2 align-items-end">
-        {{-- Campo nascosto per indicare che il form è stato davvero inviato --}}
+      <form method="GET" action="{{ route('dashboard') }}" class="row g-2">
+        {{-- Indica che il form è stato inviato (serve alla DashboardRequest) --}}
         <input type="hidden" name="submitted" value="1">
-      
-        <div class="col-12 col-md-5">
+  
+        {{-- Riga 1: campo CITTÀ a tutta larghezza --}}
+        <div class="col-12">
           <label for="name" class="form-label">Città</label>
           <input
             type="text"
@@ -36,8 +37,9 @@
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
         </div>
-      
-        <div class="col-6 col-md-3">
+  
+        {{-- Riga 2: le DATE, una accanto all’altra (su mobile vanno a capo) --}}
+        <div class="col-12 col-sm-6">
           <label for="from" class="form-label">Da (incluso)</label>
           <input
             type="date"
@@ -50,8 +52,8 @@
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
         </div>
-      
-        <div class="col-6 col-md-3">
+  
+        <div class="col-12 col-sm-6">
           <label for="to" class="form-label">A (incluso)</label>
           <input
             type="date"
@@ -64,15 +66,24 @@
             <div class="invalid-feedback">{{ $message }}</div>
           @enderror
         </div>
-      
-        <div class="col-12 col-md-1 d-grid">
+  
+        {{-- Pulsante invio --}}
+        <div class="col-12 mt-2">
           <button type="submit" class="btn btn-dark">Vai</button>
+          <small class="text-muted ms-2">Se lasci vuote le date, useremo gli ultimi 7 giorni.</small>
         </div>
       </form>
-      
-      <small class="text-muted">Se lasci vuote le date, useremo gli ultimi 7 giorni.</small>
     </div>
   </div>
+  
+  {{-- Messaggi flash (errori/ok) sotto al form --}}
+  @if(session('error'))
+    <div class="alert alert-danger">{{ session('error') }}</div>
+  @endif
+  @if(session('status'))
+    <div class="alert alert-success">{{ session('status') }}</div>
+  @endif
+  
 
   {{-- Se non abbiamo ancora fatto una ricerca, non mostriamo il resto --}}
   @if(empty($city))
