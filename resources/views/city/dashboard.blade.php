@@ -17,34 +17,59 @@
   <div class="card mb-3">
     <div class="card-body">
       <form method="GET" action="{{ route('dashboard') }}" class="row g-2 align-items-end">
+        {{-- Campo nascosto per indicare che il form è stato davvero inviato --}}
+        <input type="hidden" name="submitted" value="1">
+      
         <div class="col-12 col-md-5">
           <label for="name" class="form-label">Città</label>
           <input
             type="text"
             id="name"
             name="name"
-            class="form-control"
+            class="form-control @error('name') is-invalid @enderror"
             placeholder="Es. Roma"
-            value="{{ $nameInput ?? '' }}"
+            value="{{ old('name', $nameInput ?? '') }}"
             autocomplete="off"
             required
           >
+          @error('name')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
         </div>
-
+      
         <div class="col-6 col-md-3">
           <label for="from" class="form-label">Da (incluso)</label>
-          <input type="date" id="from" name="from" class="form-control" value="{{ $fromInput ?? '' }}">
+          <input
+            type="date"
+            id="from"
+            name="from"
+            class="form-control @error('from') is-invalid @enderror"
+            value="{{ old('from', $fromInput ?? '') }}"
+          >
+          @error('from')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
         </div>
-
+      
         <div class="col-6 col-md-3">
           <label for="to" class="form-label">A (incluso)</label>
-          <input type="date" id="to" name="to" class="form-control" value="{{ $toInput ?? '' }}">
+          <input
+            type="date"
+            id="to"
+            name="to"
+            class="form-control @error('to') is-invalid @enderror"
+            value="{{ old('to', $toInput ?? '') }}"
+          >
+          @error('to')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
         </div>
-
+      
         <div class="col-12 col-md-1 d-grid">
           <button type="submit" class="btn btn-dark">Vai</button>
         </div>
       </form>
+      
       <small class="text-muted">Se lasci vuote le date, useremo gli ultimi 7 giorni.</small>
     </div>
   </div>
