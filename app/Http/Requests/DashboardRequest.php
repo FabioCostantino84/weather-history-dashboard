@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CitySearchRequest extends FormRequest
+class DashboardRequest extends FormRequest
 {
     /**
      * L'utente è sempre autorizzato a fare la richiesta.
@@ -40,6 +40,8 @@ class CitySearchRequest extends FormRequest
                 // Evita inizio/fine con punteggiatura e ripetizioni di punteggiatura
                 'regex:/^(?![\'’.\-])(?!.*[\'’.\-]{2})[\p{L}\p{M}\s\'’\.-]+(?<![\'’.\-])$/u',
             ],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to'   => ['nullable', 'date_format:Y-m-d'],
         ];
     }
 
@@ -50,11 +52,14 @@ class CitySearchRequest extends FormRequest
     {
         return [
             'name.required' => 'Inserisci il nome della città.',
-            'name.string'   => 'Il nome della città deve essere una stringa.',
             'name.min'      => 'Il nome della città deve avere almeno :min caratteri.',
             'name.max'      => 'Il nome della città non può superare :max caratteri.',
             'name.regex'    => "Usa solo lettere, spazi, apostrofi (') , trattini (-) e punto (.). "
                                . "Niente punteggiatura doppia o all'inizio/fine.",
+
+            // Testare se davvero l'utente ha la possibilità di inserire una data in formato sbagliato.
+            'from.date_format' => 'La data iniziale deve essere nel formato YYYY-MM-DD.',
+            'to.date_format'   => 'La data finale deve essere nel formato YYYY-MM-DD.',                   
         ];
     }
 
@@ -84,4 +89,24 @@ class CitySearchRequest extends FormRequest
 
         $this->merge(['name' => $name]);
     }
+
+    /**
+     * Dopo le regole base, aggiungiamo controlli extra.
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $startDate = $this->input('from');
+            $endDate   = $this->input('to');
+    
+            // Se entrambi sono presenti e la data di inizio è maggiore della fine
+            if ($startDate && $endDate && $startDate > $endDate) {
+                $validator->errors()->add(
+                    'from',
+                    'La data di inizio non può essere successiva alla data di fine.'
+                );
+            }
+        });
+    }
+
 }
