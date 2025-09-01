@@ -56,19 +56,36 @@ class CityController extends Controller
         }
 
         // 3) Chiamiamo OpenMeteoService per cercare la città (geocoding)
-        //    e poi scarichiamo/salviamo le temperature orarie.
         try {
             $match = $meteo->searchCity($nameInput);
         } catch (\Throwable $e) {
-            // Throwable lo usiamo per catturare qualsiasi tipo di errore (HTTP, di rete/timeout/DNS o bug).
-            // Se l'API fallisce, restituiamo un errore all'utente e torniamo alla pagina precedente.
-            return back()->with('error', 'Servizio non disponibile, riprova più tardi.')->withInput();
+            // Renderizzo la dashboard senza risultati
+            return view('city.dashboard', [
+                'nameInput' => $nameInput,
+                'fromInput' => $from->toDateString(),
+                'toInput'   => $to->toDateString(),
+                'city'      => null,
+                'stats'     => [],
+                'dailyRows' => collect(),
+                'error'     => 'Servizio meteo non disponibile, riprova più tardi.',
+            ]);
         }
+        
 
         // 4) Se non troviamo nessuna città, messaggio all'utente
         if (!$match || $match['latitude'] === null || $match['longitude'] === null) {
-            return back()->with('error', 'Città non trovata.')->withInput();
+            // Renderizzo la stessa pagina ma senza risultati
+            return view('city.dashboard', [
+                'nameInput' => $nameInput,
+                'fromInput' => $from->toDateString(),
+                'toInput'   => $to->toDateString(),
+                'city'      => null,
+                'stats'     => [],
+                'dailyRows' => collect(),
+                'error'     => 'Città non trovata.',
+            ]);
         }
+        
 
         // 5) Salvataggio nel DB (se esiste già la aggiorna altrimenti la crea) si evitano duplicati nel DB.
         $city = City::updateOrCreate(
@@ -86,10 +103,16 @@ class CityController extends Controller
             );
             $meteo->saveHourlyTemps($city, $records);
         } catch (\Throwable $e) {
-            // Se qualcosa va storto (es. internet non disponibile, API down),
-            // mando l’utente indietro con un messaggio di errore.
-            return back()->with('error', 'Servizio meteo non disponibile, riprova più tardi.')->withInput();
+            return view('city.dashboard', [
+                'nameInput' => $nameInput,
+                'fromInput' => $from->toDateString(),
+                'toInput'   => $to->toDateString(),
+                'city'      => null,
+                'stats'     => [],
+                'dailyRows' => collect(),
+            ])->with('error', 'Servizio meteo non disponibile, riprova più tardi.');
         }
+        
 
         // 7) Creo una query base per rileggere i dati dal DB nell’intervallo scelto.
         $baseQuery = WeatherRecord::where('city_id', $city->id)

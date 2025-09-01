@@ -77,6 +77,11 @@
   </div>
   
   {{-- Messaggi flash (errori/ok) sotto al form --}}
+  
+  @if(!empty($error))
+    <div class="alert alert-danger">{{ $error }}</div>
+  @endif
+
   @if(session('error'))
     <div class="alert alert-danger">{{ session('error') }}</div>
   @endif
