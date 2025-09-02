@@ -115,3 +115,17 @@ body.bg-main::before{
 
 /* Margine verticale più generoso tra blocchi principali */
 .section-gap{ margin-top: 1rem; margin-bottom: 1rem; }
+
+/* Wrapper del grafico: il canvas riempie questo box */
+.chart-wrap {
+  position: relative;
+  height: 380px;   /* puoi portarlo a 420/480 se vuoi più alto */
+  width: 100%;
+}
+
+/* Il canvas riempie il wrapper */
+#dailyChart {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}

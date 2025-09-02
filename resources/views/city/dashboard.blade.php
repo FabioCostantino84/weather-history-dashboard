@@ -129,6 +129,31 @@
           </div>
         </div>
 
+        @php
+          $chartLabels = $dailyRows->map(fn($r) => \Carbon\Carbon::parse($r->day)->format('Y-m-d'))->all();
+          $chartData   = $dailyRows->map(fn($r) => is_null($r->avg_temp) ? null : round((float)$r->avg_temp, 1))->all();
+        @endphp
+        
+        {{-- Grafico medie giornaliere --}}
+        <div class="card mb-3">
+          <div class="card-body">
+            <h3 class="h5">Grafico medie giornaliere</h3>
+        
+            {{-- wrapper con altezza fissata: il canvas occupa il 100% di questo box --}}
+            <div class="chart-wrap">
+              <canvas id="dailyChart"></canvas>
+            </div>
+        
+            {{-- Dati per il grafico (labels + valori) --}}
+            <script id="dailyData" type="application/json">
+              {!! json_encode([
+                'labels' => $dailyRows->pluck('day')->map(fn($d) => \Carbon\Carbon::parse($d)->format('Y-m-d')),
+                'data'   => $dailyRows->pluck('avg_temp')->map(fn($v) => is_null($v) ? null : round((float)$v, 1)),
+              ]) !!}
+            </script>
+          </div>
+        </div>
+
         {{-- Tabella medie giornaliere --}}
         <div class="card">
           <div class="card-body">
