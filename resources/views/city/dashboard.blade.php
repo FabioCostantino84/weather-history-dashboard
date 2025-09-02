@@ -8,9 +8,9 @@
          così form e statistiche restano subito visibili senza scroll. --}}
     <div class="hero {{ !empty($city) ? 'hero-small' : '' }} on-bg">
       <h1 class="h1 mb-1">{{ config('app.name', 'WEATHER HISTORY By Innovhead') }}</h1>
-      <p class="subtitle">
-        Cerca una città e scegli un intervallo: vedrai statistiche e le <strong>medie giornaliere</strong>.
-      </p>
+      <h5 class="text-white">
+         <strong>Inserisci una città e un intervallo di date: otterrai statistiche e medie giornaliere delle temperature.</strong>.
+    </h5>
     </div>
 
     {{-- Messaggi flash (eventuali errori/ok) --}}
@@ -51,7 +51,7 @@
 
           {{-- Riga 2: le DATE, una accanto all’altra (su mobile vanno a capo) --}}
           <div class="col-12 col-sm-6">
-            <label for="from" class="form-label">Da (incluso)</label>
+            <label for="from" class="form-label">Da</label>
             <input
               type="date"
               id="from"
@@ -65,7 +65,7 @@
           </div>
 
           <div class="col-12 col-sm-6">
-            <label for="to" class="form-label">A (incluso)</label>
+            <label for="to" class="form-label">A</label>
             <input
               type="date"
               id="to"
@@ -80,8 +80,8 @@
 
           {{-- Pulsante invio --}}
           <div class="col-12 mt-2">
-            <button type="submit" class="btn btn-dark">Vai</button>
-            <small class="text-muted ms-2">Se lasci vuote le date, useremo gli ultimi 7 giorni.</small>
+            <small class="text-muted ms-2">* Se lasci vuote le date, useremo gli ultimi 7 giorni.</small>
+            <button type="submit" class="btn btn-dark">Cerca</button>
           </div>
         </form>
       </div>
@@ -89,11 +89,11 @@
 
     {{-- Se non abbiamo ancora fatto una ricerca, non mostriamo il resto --}}
     @if(empty($city))
-      <p class="text-muted">Suggerimento: prova con <em>Roma</em>, <em>Milano</em>, <em>Napoli</em>…</p>
+      <p class="text-white">Suggerimento: prova con <em>Roma</em>, <em>Milano</em>, <em>Napoli</em>…</p>
     @else
       {{-- Sezione risultati con ancoraggio e margine di scroll (niente salto “sotto” l’header) --}}
       <section id="results" class="scroll-target">
-        <h2 class="h5 mb-1">Statistiche — {{ $city->name }} ({{ $city->country ?? 'n/d' }})</h2>
+        <h2 class="text-white h5 mb-1">Statistiche — {{ $city->name }} ({{ $city->country ?? 'n/d' }})</h2>
 
         {{-- Box statistiche --}}
         <div class="row g-3 mb-3">
@@ -135,9 +135,9 @@
         @endphp
         
         {{-- Grafico medie giornaliere --}}
+        <h3 class="text-white h5">Grafico medie giornaliere</h3>
         <div class="card mb-3">
           <div class="card-body">
-            <h3 class="h5">Grafico medie giornaliere</h3>
         
             {{-- wrapper con altezza fissata: il canvas occupa il 100% di questo box --}}
             <div class="chart-wrap">
@@ -154,34 +154,48 @@
           </div>
         </div>
 
-        {{-- Tabella medie giornaliere --}}
-        <div class="card">
-          <div class="card-body">
-            <h3 class="h5">Temperature giornaliere (media per giorno)</h3>
+        {{-- Toggle tabella medie giornaliere (in card) --}}
+        <div class="d-flex align-items-center justify-content-between mt-3">
+          <button class="btn btn-outline-light btn-sm"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#dailyTable"
+                  aria-expanded="false"
+                  aria-controls="dailyTable"
+                  id="toggleTableBtn">
+            Mostra dati dettagliati
+          </button>
+        </div>
 
-            @if(($dailyRows ?? collect())->isEmpty())
-              <p class="text-muted mb-0">Nessun dato nell'intervallo selezionato.</p>
-            @else
-              <div class="table-responsive">
-                <table class="table table-sm align-middle">
-                  <thead>
-                    <tr>
-                      <th>Giorno</th>
-                      <th>Media (°C)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @foreach($dailyRows as $d)
+        <div class="collapse mt-2" id="dailyTable" style="scroll-margin-top:16px;">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              @if(($dailyRows ?? collect())->isEmpty())
+                <p class="text-muted mb-0">Nessun dato nell'intervallo selezionato.</p>
+              @else
+                <div class="table-responsive rounded-3 overflow-hidden">
+                  <table class="table table-sm table-striped table-hover align-middle mb-0">
+                    <thead class="table-light sticky-top">
                       <tr>
-                        <td>{{ \Carbon\Carbon::parse($d->day)->format('Y-m-d') }}</td>
-                        <td>{{ $d->avg_temp !== null ? number_format((float)$d->avg_temp, 1, ',', '') : 'n/d' }}</td>
+                        <th style="width:40%">Giorno</th>
+                        <th style="width:60%">Media (°C)</th>
                       </tr>
-                    @endforeach
-                  </tbody>
-                </table>
-              </div>
-              <small class="text-muted">Giorni totali: {{ $dailyRows->count() }}</small>
-            @endif
+                    </thead>
+                    <tbody>
+                      @foreach($dailyRows as $d)
+                        <tr>
+                          <td>{{ \Carbon\Carbon::parse($d->day)->format('Y-m-d') }}</td>
+                          <td>{{ $d->avg_temp !== null ? number_format((float)$d->avg_temp, 1, ',', '') : 'n/d' }}</td>
+                        </tr>
+                      @endforeach
+                    </tbody>
+                  </table>
+                </div>
+                <div class="mt-2 text-end">
+                  <span class="badge text-bg-secondary">Giorni: {{ $dailyRows->count() }}</span>
+                </div>
+              @endif
+            </div>
           </div>
         </div>
       </section>

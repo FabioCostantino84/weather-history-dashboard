@@ -107,8 +107,8 @@ body.bg-main::before{
    Card “vetro” (form e contenuti)
    ========================================================= */
 .card{
-  background-color: rgba(255, 255, 255, .88);
-  backdrop-filter: blur(4px);
+  background-color: rgba(255, 255, 255, .50);
+  backdrop-filter: blur(6px);
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0,0,0, .2);
 }
