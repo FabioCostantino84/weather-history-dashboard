@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   {{-- Favicon --}}
-  <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=1">
-  <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}?v=1">
+  <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}?v=1">
+  <link rel="apple-touch-icon" href="{{ asset('images/favicon.png') }}?v=1">
 
   {{-- Preload dello sfondo per ridurre il “flash” --}}
   <link rel="preload" as="image" href="{{ asset('images/bg-seasons.webp') }}">
