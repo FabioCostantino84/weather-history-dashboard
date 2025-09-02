@@ -1,11 +1,117 @@
-@import 'tailwindcss';
+/* =========================================================
+   Bootstrap (resta prima di tutto il resto)
+   ========================================================= */
+@import "bootstrap/dist/css/bootstrap.min.css";
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
+/* =========================================================
+   Sfondo pagina
+   - assegna class="bg-main" al <body>
+   - immagine in /public/images/bg-seasons.webp
+   ========================================================= */
+html, body { height: 100%; }
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+body.bg-main{
+  background: url('/images/bg-seasons.webp') no-repeat center center;
+  background-size: cover;
+  min-height: 100vh;
+  background-color: #eef2f7; /* fallback colore se l’immagine tarda */
 }
+
+/* Su desktop fisso lo sfondo (parallax leggero) */
+@media (min-width: 992px){
+  body.bg-main{ background-attachment: fixed; }
+}
+
+/* Overlay scuro per migliorare contrasto del testo sullo sfondo */
+body.bg-main::before{
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,.55) 0%,
+    rgba(0,0,0,.35) 35%,
+    rgba(0,0,0,.35) 65%,
+    rgba(0,0,0,.55) 100%
+  );
+  pointer-events: none;
+  z-index: 0; /* sotto al contenuto */
+}
+
+/* Tutto il contenuto deve stare sopra l’overlay */
+.page-content{ position: relative; z-index: 1; }
+
+/* =========================================================
+   Tipografia/Colori
+   ========================================================= */
+
+/* Testi sopra lo sfondo: bianchi con ombra, più leggibili */
+.on-bg, .on-bg h1, .on-bg h2, .on-bg h3, .on-bg p, .on-bg label,
+.on-bg .text-muted, .on-bg th, .on-bg td{
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,.5);
+}
+
+/* Dentro le card il testo resta scuro e senza ombre */
+.card, .card h1, .card h2, .card h3, .card p, .card label,
+.card .text-muted, .card th, .card td{
+  color: #222 !important;
+  text-shadow: none !important;
+}
+
+/* Utility per ombra testo extra dove serve */
+.text-shadow{ text-shadow: 2px 2px 6px rgba(0,0,0,0.7); }
+
+/* =========================================================
+   Hero (titolo + sottotitolo)
+   - usa .hero all’avvio
+   - quando mostri risultati aggiungi .hero-small
+   ========================================================= */
+.hero{
+  min-height: 46vh;                 /* ~ mezzo schermo */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: .25rem;
+  padding: 1.25rem;
+}
+
+/* quando esiste #results, l’ancora atterra un po’ più in basso
+   così non “schiaccia” il primo blocco sotto il bordo alto */
+.scroll-target { scroll-margin-top: 16px; }
+
+/* hero compatto quando ci sono risultati */
+.hero-small { min-height: 14vh; padding: 1rem 0; }
+
+/* Titolo grande + ombra */
+.hero .h1{
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  color: #fff;
+  text-shadow: 2px 2px 6px rgba(0,0,0,.75);
+  letter-spacing: .5px;
+  margin: 0;
+}
+
+/* Sottotitolo */
+.hero .subtitle{
+  color: rgba(255,255,255,.9);
+  text-shadow: 1px 1px 4px rgba(0,0,0,.6);
+  margin: 0;
+  font-weight: 500;
+  opacity: .95;
+}
+
+/* =========================================================
+   Card “vetro” (form e contenuti)
+   ========================================================= */
+.card{
+  background-color: rgba(255, 255, 255, .88);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0, .2);
+}
+
+/* Margine verticale più generoso tra blocchi principali */
+.section-gap{ margin-top: 1rem; margin-bottom: 1rem; }
