@@ -66,19 +66,6 @@ Il progetto è stato sviluppato con **Laravel** e un’attenzione particolare al
 3. Configura l'ambiente
    - Copia .env.example in .env
 
-     APP_NAME="WEATHER HISTORY By Innovhead"
-     APP_ENV=local
-     APP_KEY=base64:HI/+uvWwuqRkLflKpoVIVGeR+En+OXf2IA+lQg1Jrnk=
-     APP_DEBUG=true
-     APP_URL=http://localhost
-     
-     DB_CONNECTION=mysql
-     DB_HOST=127.0.0.1
-     DB_PORT=3306
-     DB_DATABASE=weather_dashboard
-     DB_USERNAME=laravel_user
-     DB_PASSWORD=innovhead
-
    - Imposta i parametri del database
      php artisan key:generate  
      php artisan migrate
