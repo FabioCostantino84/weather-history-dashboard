@@ -1,38 +1,95 @@
 # Weather History Dashboard
 
 ## Descrizione
-Applicazione Laravel che permette di cercare una città, scaricare i dati storici delle temperature orarie da Open-Meteo e visualizzarli in tabella e in forma aggregata.
+Progetto realizzato come assignment per **Innovhead**.  
+L’applicazione consente di visualizzare le **statistiche storiche delle temperature** di una città, sfruttando le API di [Open-Meteo](https://open-meteo.com/).  
+Il progetto è stato sviluppato con **Laravel** e un’attenzione particolare alla **pulizia del codice**, **usabilità** e **presentazione grafica**.
 
 ---
+
+## Scelte progettuali
+- **Laravel come framework**: per la struttura MVC, la gestione semplice di rotte, validazioni e cache.
+- **Open-Meteo API**: scelta perché è gratuita, precisa e adatta a un progetto didattico.
+- **Bootstrap 5**: adottato per la parte di UI/UX, sfruttando le sue classi per una grafica pulita e responsive.
+- **Chart.js**: libreria leggera e immediata per i grafici interattivi.
+- **Caching lato server**: implementato per ridurre le chiamate ripetute alle API e migliorare le performance.
+- **Card trasparenti e overlay scuro**: per garantire leggibilità su uno sfondo stagionale senza sacrificare l’estetica.
+
+---
+
+## Scelte del codice
+- Controller → gestiscono le richieste HTTP e orchestrano logica e viste
+- Service (OpenMeteoService) → centralizza le chiamate alle API esterne e la normalizzazione dei dati
+- Model → City, WeatherRecord, relazioni con il DB
+- View Blade → frontend responsivo con Bootstrap 5
 
 ## Funzionalità implementate
-- [x] Ricerca città tramite API Open-Meteo Geocoding  
-- [ ] Salvataggio città nel database  
-- [x] Download dati storici temperatura (Archive API)  
-- [ ] Salvataggio dati storici nel database  
-- [ ] API interne per restituzione statistiche aggregate  
-- [ ] Frontend con tabella dati e box statistiche  
-
-**Extra (se presenti):**
-- [ ] Cache locale dei dati  
-- [ ] Grafico delle temperature (es. Chart.js)  
-- [ ] Seed iniziale con città predefinite  
-- [ ] Test unitari  
+- Ricerca di una città tramite form.
+- Selezione di un intervallo di date (se vuoto → ultimi 7 giorni).
+- Statistiche principali:
+  - Temperatura media
+  - Temperatura minima
+  - Temperatura massima
+- Grafico interattivo a barre con medie giornaliere.
+- Tabella dettagliata con toggle (Bootstrap collapse).
+- Gestione errori (città non trovata, API non disponibili).
+- Cache delle ricerche e dei dati orari per evitare chiamate duplicate.
 
 ---
 
-## Struttura del codice
-- **Controller** → gestione input utente e logica di coordinamento  
-- **Service (OpenMeteoService)** → chiamate API esterne a Open-Meteo  
-- **Model** → City e WeatherRecord con relazioni al DB  
-- **View Blade** → interfaccia frontend per visualizzare risultati e statistiche  
+## Funzionalità extra
+- **UI migliorata** con card “vetro” semitrasparenti, overlay scuro e testi leggibili.
+- **Responsive design** per adattarsi anche su mobile.
+- **Toggle tabella dati**: possibilità di mostrare/nascondere i dati dettagliati senza appesantire la UI.
+- **Colori dinamici nel grafico**: sfumatura blu → arancione → rosso in base alla temperatura.
 
 ---
 
-## Scelte tecniche
-- Uso di `Http::retry()` per rendere più robuste le chiamate esterne.  
-- Normalizzazione dati: latitudine/longitudine salvati come `decimal` nel DB e cast a `float` nei model.  
-- Uso di `Carbon` per la gestione sicura delle date.  
-- Preparazione alle statistiche aggregate (media, min, max) direttamente da DB per efficienza.  
+## Struttura progetto
+- `app/Services/OpenMeteoService.php` → gestione API, normalizzazione dati, caching.
+- `resources/views/dashboard.blade.php` → dashboard principale (form, statistiche, grafico, tabella).
+- `resources/js/chart.js` → logica grafico Chart.js.
+- `resources/js/app.js` → script di interazione frontend (toggle tabella, scroll).
+- `resources/css/app.css` → stili custom (overlay, card vetro, grafica migliorata).
 
 ---
+
+## Installazione e Setup
+1. Clona la repo:
+   git clone <url-repository>
+   cd <nome cartella>
+
+2. Installa le dipendenze:
+   composer install
+   npm install
+
+3. Configura l'ambiente
+   - Copia .env.example in .env
+
+     APP_NAME="WEATHER HISTORY By Innovhead"
+     APP_ENV=local
+     APP_KEY=base64:HI/+uvWwuqRkLflKpoVIVGeR+En+OXf2IA+lQg1Jrnk=
+     APP_DEBUG=true
+     APP_URL=http://localhost
+     
+     DB_CONNECTION=mysql
+     DB_HOST=127.0.0.1
+     DB_PORT=3306
+     DB_DATABASE=weather_dashboard
+     DB_USERNAME=laravel_user
+     DB_PASSWORD=innovhead
+
+   - Imposta i parametri del database
+     php artisan key:generate  
+     php artisan migrate
+
+4. Avvia l'applicazione
+   - Avvio del backend laravel
+     php artisan serve  
+   
+   - Avvio del frontend
+     * Modalità sviluppo
+       npm run dev   
+   
+     * Build di produzione
+       npm run build  
